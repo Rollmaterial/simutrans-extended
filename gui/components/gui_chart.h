@@ -12,13 +12,48 @@
 #include "../../tpl/slist_tpl.h"
 
 
+enum chart_marker_t {
+	none    = 0,
+	square  = 1,
+	cross   = 2,
+	diamond = 3,
+	round_box=4,
+	MAX_CHART_MARKER_TYPE,
+	MARKER_TYPE_MASK=127,
+	draw_horizontal_line = 1<<7
+};
+
+static void display_chart_marker_rgb(scr_coord_val xp, scr_coord_val yp, PIXVAL color, chart_marker_t marker_type, bool dirty  CLIP_NUM_DEFAULT_ZERO)
+{
+	switch (marker_type)
+	{
+	case chart_marker_t::square:
+		display_fillbox_wh_clip_rgb(xp, yp, 5, 5, color, true);
+		break;
+	case chart_marker_t::cross:
+		display_direct_line_rgb(xp, yp, xp + 4, yp + 4, color);
+		display_direct_line_rgb(xp + 4, yp, xp, yp + 4, color);
+		break;
+	case chart_marker_t::diamond:
+		for (int j = 0; j < 5; j++) {
+			display_vline_wh_clip_rgb(xp + j, yp + abs(2 - j), 5 - 2 * abs(2 - j), color, false);
+		}
+		break;
+	case chart_marker_t::round_box:
+		display_filled_roundbox_clip(xp, yp, 5, 5, color, true);
+		break;
+	case chart_marker_t::none:
+	default:
+		break;
+	}
+}
+
 /**
  * Draws a group of curves.
  */
 class gui_chart_t : public gui_component_t
 {
 public:
-	enum chart_marker_t { square = 0, cross, diamond, round_box, none };
 	// NOTE: KMPH and FORCE hacks drawing accuracy and should not be mixed with other types
 	// CURVE TYPES
 	enum chart_suffix_t { STANDARD = 0, MONEY, PERCENT, DISTANCE, KMPH, FORCE, PAX_KM, KG_KM, TON_KM, TON_KM_MAIL, KW,/* WATT,*/ TONNEN, TIME };

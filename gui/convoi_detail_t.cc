@@ -68,9 +68,9 @@ static const uint8 curves_type[MAX_PHYSICS_CURVES] =
 	gui_chart_t::FORCE
 };
 
-static const gui_chart_t::chart_marker_t marker_type[MAX_PHYSICS_CURVES] = {
-	gui_chart_t::none, gui_chart_t::cross, gui_chart_t::square, gui_chart_t::diamond,
-	gui_chart_t::diamond, gui_chart_t::cross
+static const chart_marker_t marker_type[MAX_PHYSICS_CURVES] = {
+	chart_marker_t::none, chart_marker_t::cross, chart_marker_t::square, chart_marker_t::diamond,
+	chart_marker_t::diamond, chart_marker_t::cross
 };
 
 static const char curve_name[MAX_PHYSICS_CURVES][64] =

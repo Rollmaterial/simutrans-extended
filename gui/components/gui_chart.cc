@@ -226,28 +226,7 @@ void gui_chart_t::draw(scr_coord offset)
 				if (i < end) {
 					scr_coord_val x = tmpx + factor * (chart_size.w / (x_elements - 1))*(i - start) - 2;
 					scr_coord_val y = (scr_coord_val)(offset.y + baseline - (long)(tmp / scale) - 2);
-					switch (c.marker_type)
-					{
-						case cross:
-							display_direct_line_rgb(x, y, x + 4, y + 4, c.color);
-							display_direct_line_rgb(x + 4, y, x, y + 4, c.color);
-							break;
-						case diamond:
-							for (int j = 0; j < 5; j++) {
-								display_vline_wh_clip_rgb(x + j, y + abs(2 - j), 5 - 2 * abs(2 - j), c.color, false);
-							}
-							break;
-						case round_box:
-							display_filled_roundbox_clip(x, y, 5, 5, c.color, true);
-							break;
-						case none:
-							// display nothing
-							break;
-						case square:
-						default:
-							display_fillbox_wh_clip_rgb(x, y, 5, 5, c.color, true);
-							break;
-					}
+					display_chart_marker_rgb(x, y, c.color, c.marker_type, false);
 				}
 
 				if (c.type == KMPH) {

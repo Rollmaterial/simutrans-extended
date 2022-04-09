@@ -60,7 +60,8 @@ static const uint8 chart_type[MAX_FAB_STAT] =
 
 static const gui_chart_t::chart_marker_t marker_type[MAX_FAB_REF_LINE] =
 {
-	gui_chart_t::cross, gui_chart_t::cross, gui_chart_t::cross, gui_chart_t::diamond, gui_chart_t::diamond, gui_chart_t::diamond
+	chart_marker_t::cross, chart_marker_t::cross, chart_marker_t::cross,
+	chart_marker_t::diamond, chart_marker_t::diamond, chart_marker_t::diamond
 };
 
 static const gui_chart_t::convert_proc ref_convert[MAX_FAB_REF_LINE] =
