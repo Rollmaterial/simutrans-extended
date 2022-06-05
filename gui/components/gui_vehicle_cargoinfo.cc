@@ -236,7 +236,7 @@ void gui_vehicle_cargo_info_t::update()
 			char max_loading_time_as_clock[32];
 			world()->sprintf_ticks(min_loading_time_as_clock, sizeof(min_loading_time_as_clock), veh->get_desc()->get_min_loading_time());
 			world()->sprintf_ticks(max_loading_time_as_clock, sizeof(max_loading_time_as_clock), veh->get_desc()->get_max_loading_time());
-			gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+			gui_label_buf_t *lb = new_component<gui_label_buf_t>();
 			lb->buf().printf(" %s %s - %s", translator::translate("Loading time:"), min_loading_time_as_clock, max_loading_time_as_clock);
 			lb->update();
 		}
@@ -244,7 +244,7 @@ void gui_vehicle_cargo_info_t::update()
 
 		add_table(4,1);
 		{
-			gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+			gui_label_buf_t *lb = new_component<gui_label_buf_t>();
 			// [fare class name/catgname]
 			if (number_of_classes>1) {
 				lb->buf().append(goods_manager_t::get_translated_fare_class_name(veh->get_cargo_type()->get_catg_index(), veh->get_reassigned_class(ac)));
@@ -279,7 +279,7 @@ void gui_vehicle_cargo_info_t::update()
 					if (is_pass_veh && skinverwaltung_t::comfort) {
 						new_component<gui_image_t>(skinverwaltung_t::comfort->get_image_id(0), 0, ALIGN_NONE, true);
 					}
-					lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+					lb = new_component<gui_label_buf_t>();
 					lb->buf().printf("%s %3i", translator::translate("Comfort:"), veh->get_comfort(veh->get_convoi()->get_catering_level(goods_manager_t::INDEX_PAS), veh->get_reassigned_class(ac)));
 					lb->update();
 					// Check for reduced comfort
@@ -298,7 +298,7 @@ void gui_vehicle_cargo_info_t::update()
 				end_table();
 			}
 			else if (veh->get_desc()->get_mixed_load_prohibition()) {
-				lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+				lb = new_component<gui_label_buf_t>();
 				lb->buf().append( translator::translate("(mixed_load_prohibition)") );
 				lb->set_color(color_idx_to_rgb(COL_BRONZE)); // FIXME: color optimization for dark theme
 				lb->update();
@@ -390,7 +390,7 @@ void gui_vehicle_cargo_info_t::update()
 					new_component<gui_margin_t>(LINESPACE); // most left
 					add_table(5,1)->set_spacing(scr_size(D_H_SPACE,0));
 					{
-						gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+						gui_label_buf_t *lb = new_component<gui_label_buf_t>();
 						lb->buf().printf("%u%s ", sum_of_heading_to_this_halt, translator::translate(veh->get_cargo_type()->get_mass()));
 						lb->update();
 						lb->set_fixed_width(lb->get_min_size().w+D_H_SPACE);
@@ -404,7 +404,7 @@ void gui_vehicle_cargo_info_t::update()
 							);
 
 						// stop name
-						lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+						lb = new_component<gui_label_buf_t>();
 						lb->buf().append(halt->get_name());
 						lb->update();
 
@@ -422,7 +422,7 @@ void gui_vehicle_cargo_info_t::update()
 							for (uint8 wc = 0; wc < number_of_classes; wc++) { // wealth class
 								uint32 wealth_sum = 0;
 								if (fracht_array[wc].get_count()) {
-									gui_label_buf_t *lb_wealth_total = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+									gui_label_buf_t *lb_wealth_total = new_component<gui_label_buf_t>();
 									lb_wealth_total->set_size(scr_size(0,0));
 									add_table(1,0); // for destination list
 									{
@@ -445,7 +445,7 @@ void gui_vehicle_cargo_info_t::update()
 												}
 
 												// 3. goods amount and unit
-												gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+												gui_label_buf_t *lb = new_component<gui_label_buf_t>();
 												lb->buf().printf("%u", w.menge);
 												if (w.is_passenger()) {
 													if (w.menge == 1) {
@@ -498,7 +498,7 @@ void gui_vehicle_cargo_info_t::update()
 																w.get_ziel().get_rep()->get_basis_pos3d()
 																);
 
-															lb = new_component<gui_label_buf_t>(SYSCOL_TEXT, gui_label_t::left);
+															lb = new_component<gui_label_buf_t>();
 															lb->buf().printf("%s", w.get_ziel()->get_name());
 															lb->update();
 
