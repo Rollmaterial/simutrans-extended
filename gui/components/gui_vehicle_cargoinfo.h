@@ -14,6 +14,7 @@
 #include "../../convoihandle_t.h"
 #include "../../vehicle/vehicle.h"
 #include "../../dataobj/schedule.h"
+#include "../../utils/simstring.h"
 
 
 // Display building information in one line
@@ -78,6 +79,71 @@ public:
 	void draw(scr_coord offset) OVERRIDE;
 
 	void update();
+};
+
+class gui_cargo_info_t : public gui_aligned_container_t
+{
+	convoihandle_t cnv;
+
+	static int compare_amount(const ware_t &a, const ware_t &b) {
+		int comp = b.menge - a.menge;
+		return comp;
+	}
+
+	static int compare_index(const ware_t &a, const ware_t &b) {
+		int comp = a.index - b.index;
+		if (comp == 0) {
+			comp = b.get_class() - a.get_class();
+		}
+		if (comp == 0) {
+			comp = b.menge - a.menge;
+		}
+		return comp;
+	}
+
+	static int compare_via(const ware_t &a, const ware_t &b) {
+		int comp = STRICMP(a.get_zwischenziel()->get_name(), b.get_zwischenziel()->get_name());
+		if (comp == 0) {
+			comp = STRICMP(a.get_ziel()->get_name(), b.get_ziel()->get_name());
+		}
+		if (comp == 0) {
+			comp = b.menge - a.menge;
+		}
+		return comp;
+	}
+
+	static int compare_last_transfer(const ware_t &a, const ware_t &b) {
+		int comp = STRICMP(a.get_last_transfer()->get_name(), b.get_last_transfer()->get_name());
+		if (comp == 0) {
+			comp = b.menge - a.menge;
+		}
+		return comp;
+	}
+
+
+public:
+	gui_cargo_info_t(convoihandle_t cnv);
+	void init(uint8 depth_from, uint8 depth_to, bool divide_wealth = false, uint8 sort_mode = 0, uint8 catg_index=goods_manager_t::INDEX_NONE, uint8 fare_class=0);
+
+	void build_table();
+};
+
+class gui_convoy_cargo_info_t : public gui_aligned_container_t
+{
+	convoihandle_t cnv;
+	uint8 info_depth_from = 0;
+	uint8 info_depth_to   = 1;
+	bool divide_by_wealth = false;
+	bool separate_by_fare = true;
+	uint8 sort_mode = 0;
+
+public:
+	gui_convoy_cargo_info_t(convoihandle_t cnv = convoihandle_t());
+
+	void update();
+
+	void set_convoy(convoihandle_t c) { cnv = c;  update(); }
+	void set_mode(uint8 depth_from, uint8 depth_to, bool divide_goods_wealth=false, bool separate_by_vehicle_fare = true, uint8 sort_mode=0);
 };
 
 
