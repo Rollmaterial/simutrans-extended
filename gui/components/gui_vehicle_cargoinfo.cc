@@ -918,3 +918,21 @@ void gui_convoy_cargo_info_t::update()
 
 	set_size(get_min_size());
 }
+
+void gui_convoy_cargo_info_t::draw(scr_coord offset)
+{
+	if( cnv.is_bound() ) {
+		bool need_update = false;
+		if( cnv->get_vehicle_count() != old_vehicle_count ) {
+			old_vehicle_count = cnv->get_vehicle_count();
+			need_update = true;
+		}
+		if( cnv->get_total_cargo() != old_total_cargo ) {
+			old_total_cargo = cnv->get_total_cargo();
+			need_update = true;
+		}
+
+		if (need_update) update();
+		gui_aligned_container_t::draw(offset);
+	}
+}

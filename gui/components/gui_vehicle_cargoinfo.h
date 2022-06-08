@@ -147,6 +147,9 @@ class gui_convoy_cargo_info_t : public gui_aligned_container_t
 	bool separate_by_fare = true;
 	uint8 sort_mode = 0;
 
+	uint8 old_vehicle_count=1;
+	uint16 old_total_cargo=0;
+
 public:
 	gui_convoy_cargo_info_t(convoihandle_t cnv = convoihandle_t());
 
@@ -154,6 +157,8 @@ public:
 
 	void set_convoy(convoihandle_t c) { cnv = c;  update(); }
 	void set_mode(uint8 depth_from, uint8 depth_to, bool divide_goods_wealth=false, bool separate_by_vehicle_fare = true, uint8 sort_mode=0);
+
+	void draw(scr_coord offset) OVERRIDE;
 };
 
 
