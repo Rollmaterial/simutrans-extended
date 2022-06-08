@@ -865,6 +865,9 @@ void gui_convoy_cargo_info_t::update()
 	remove_all();
 	if( !cnv.is_bound() ) { return; }
 
+	old_vehicle_count = cnv->get_vehicle_count();
+	old_total_cargo   = cnv->get_total_cargo();
+
 	set_table_layout(1,0);
 	set_alignment(ALIGN_LEFT | ALIGN_TOP);
 	
@@ -924,11 +927,9 @@ void gui_convoy_cargo_info_t::draw(scr_coord offset)
 	if( cnv.is_bound() ) {
 		bool need_update = false;
 		if( cnv->get_vehicle_count() != old_vehicle_count ) {
-			old_vehicle_count = cnv->get_vehicle_count();
 			need_update = true;
 		}
-		if( cnv->get_total_cargo() != old_total_cargo ) {
-			old_total_cargo = cnv->get_total_cargo();
+		else if( cnv->get_total_cargo() != old_total_cargo ) {
 			need_update = true;
 		}
 
