@@ -24,6 +24,43 @@
 
 #define HALT_WAITING_BAR_MAX_WIDTH 80
 
+
+static int compare_amount(const ware_t &a, const ware_t &b) {
+	int comp = b.menge - a.menge;
+	return comp;
+}
+
+static int compare_index(const ware_t &a, const ware_t &b) {
+	int comp = a.index - b.index;
+	if (comp == 0) {
+		comp = b.get_class() - a.get_class();
+	}
+	if (comp == 0) {
+		comp = b.menge - a.menge;
+	}
+	return comp;
+}
+
+static int compare_via(const ware_t &a, const ware_t &b) {
+	int comp = STRICMP(a.get_zwischenziel()->get_name(), b.get_zwischenziel()->get_name());
+	if (comp == 0) {
+		comp = STRICMP(a.get_ziel()->get_name(), b.get_ziel()->get_name());
+	}
+	if (comp == 0) {
+		comp = b.menge - a.menge;
+	}
+	return comp;
+}
+
+static int compare_last_transfer(const ware_t &a, const ware_t &b) {
+	int comp = STRICMP(a.get_last_transfer()->get_name(), b.get_last_transfer()->get_name());
+	if (comp == 0) {
+		comp = b.menge - a.menge;
+	}
+	return comp;
+}
+
+
 gui_destination_building_info_t::gui_destination_building_info_t(koord zielpos, bool yesno)
 {
 	is_freight = yesno;
