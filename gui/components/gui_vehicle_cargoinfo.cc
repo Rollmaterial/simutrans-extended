@@ -22,6 +22,8 @@
 #define LOADING_BAR_WIDTH 170
 #define LOADING_BAR_HEIGHT 5
 
+#define HALT_WAITING_BAR_MAX_WIDTH 80
+
 gui_destination_building_info_t::gui_destination_building_info_t(koord zielpos, bool yesno)
 {
 	is_freight = yesno;
@@ -679,7 +681,7 @@ void gui_cargo_info_t::init(uint8 info_depth_from, uint8 info_depth_to, bool div
 		if (max_goods_count) {
 			FOR(slist_tpl<ware_t>, &ware, cargoes) {
 				// col1
-				scr_coord_val width = (80*ware.menge+max_goods_count-1)/max_goods_count;
+				scr_coord_val width = (HALT_WAITING_BAR_MAX_WIDTH*ware.menge+max_goods_count-1)/max_goods_count;
 				const PIXVAL barcolor = (divide_by_wealth && ware.is_commuting_trip) ? color_idx_to_rgb(COL_COMMUTER) : color_idx_to_rgb(goods_manager_t::get_info(ware.get_index())->get_color_index());
 				add_table(2,2)->set_spacing(scr_size(0,0));
 				{
