@@ -685,7 +685,7 @@ void gui_cargo_info_t::init(uint8 info_depth_from, uint8 info_depth_to, bool div
 				const PIXVAL barcolor = (divide_by_wealth && ware.is_commuting_trip) ? color_idx_to_rgb(COL_COMMUTER) : color_idx_to_rgb(goods_manager_t::get_info(ware.get_index())->get_color_index());
 				add_table(2,2)->set_spacing(scr_size(0,0));
 				{
-					new_component<gui_fill_t>();
+					new_component<gui_margin_t>(HALT_WAITING_BAR_MAX_WIDTH-width);
 					new_component<gui_capacity_bar_t>(scr_size(width, GOODS_COLOR_BOX_HEIGHT), barcolor)->set_show_frame(false);
 					//new_component<gui_colorbox_t>()->init(barcolor, scr_size(width, GOODS_COLOR_BOX_HEIGHT), true, false);
 
@@ -732,7 +732,6 @@ void gui_cargo_info_t::init(uint8 info_depth_from, uint8 info_depth_to, bool div
 
 					// extra 2nd row for control alignment
 					new_component_span<gui_margin_t>(0, (info_depth_from&&info_depth_to) ? max(D_POS_BUTTON_HEIGHT, D_ENTRY_NO_HEIGHT):0, 3);
-
 				}
 				end_table();
 
