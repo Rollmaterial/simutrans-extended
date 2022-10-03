@@ -306,9 +306,9 @@ void gui_convoy_spec_table_t::insert_spec_rows()
 			continue;
 		}
 #endif
-		if (i == SPECS_TILTING && !cnv->has_tilting_vehicles()) {
-			continue;
-		}
+		//if (i == SPECS_TILTING && !cnv->has_tilting_vehicles()) {
+		//	continue;
+		//}
 		for (uint8 j=0; j < cnv->get_vehicle_count()+2; j++) {
 			// Row label
 			if (j == 0) {
