@@ -1,9 +1,11 @@
 #include "gui_vehicle_cargoinfo.h"
 
+#include "gui_divider.h"
 #include "gui_image.h"
 #include "gui_label.h"
 #include "gui_schedule_item.h"
 #include "gui_colorbox.h"
+#include "gui_vehicle_capacitybar.h"
 #include "../simwin.h"
 
 #include "../../simcity.h"
@@ -19,6 +21,45 @@
 
 #define LOADING_BAR_WIDTH 170
 #define LOADING_BAR_HEIGHT 5
+
+#define HALT_WAITING_BAR_MAX_WIDTH 80
+
+
+static int compare_amount(const ware_t &a, const ware_t &b) {
+	int comp = b.menge - a.menge;
+	return comp;
+}
+
+static int compare_index(const ware_t &a, const ware_t &b) {
+	int comp = a.index - b.index;
+	if (comp == 0) {
+		comp = b.get_class() - a.get_class();
+	}
+	if (comp == 0) {
+		comp = b.menge - a.menge;
+	}
+	return comp;
+}
+
+static int compare_via(const ware_t &a, const ware_t &b) {
+	int comp = STRICMP(a.get_zwischenziel()->get_name(), b.get_zwischenziel()->get_name());
+	if (comp == 0) {
+		comp = STRICMP(a.get_ziel()->get_name(), b.get_ziel()->get_name());
+	}
+	if (comp == 0) {
+		comp = b.menge - a.menge;
+	}
+	return comp;
+}
+
+static int compare_last_transfer(const ware_t &a, const ware_t &b) {
+	int comp = STRICMP(a.get_last_transfer()->get_name(), b.get_last_transfer()->get_name());
+	if (comp == 0) {
+		comp = b.menge - a.menge;
+	}
+	return comp;
+}
+
 
 gui_destination_building_info_t::gui_destination_building_info_t(koord zielpos, bool yesno)
 {
@@ -573,5 +614,359 @@ void gui_vehicle_cargo_info_t::draw(scr_coord offset)
 	}
 	else {
 		gui_aligned_container_t::set_size(scr_size(0,0));
+	}
+}
+
+
+gui_cargo_info_t::gui_cargo_info_t(convoihandle_t cnv)
+{
+	this->cnv = cnv;
+}
+
+void gui_cargo_info_t::init(uint8 info_depth_from, uint8 info_depth_to, bool divide_by_wealth, uint8 sort_mode, uint8 catg_index, uint8 fare_class)
+{
+	if( cnv.is_bound() ) {
+		set_table_layout(4,0);
+		set_alignment(ALIGN_LEFT | ALIGN_CENTER_V);
+		set_spacing(scr_size(D_H_SPACE, 2));
+
+		uint16 max_goods_count=0; // for colorbar width
+
+		slist_tpl<ware_t> cargoes;
+
+		for( uint8 v=0; v<cnv->get_vehicle_count(); ++v ) {
+			const vehicle_t* veh = cnv->get_vehicle(v);
+			const uint8 g_classes = veh->get_desc()->get_number_of_classes();
+
+			// goods/fare class filter
+			if (catg_index!=goods_manager_t::INDEX_NONE) {
+				if (veh->get_desc()->get_freight_type()->get_catg_index() != catg_index) {
+					continue;
+				}
+				if( !veh->get_fare_capacity(fare_class) &&  !veh->get_overcrowded_capacity(fare_class)  ) {
+					continue;
+				}
+			}
+
+			for(uint8 ac=0; ac<g_classes; ++ac) {
+				if (catg_index!=goods_manager_t::INDEX_NONE  &&  veh->get_reassigned_class(ac)!=fare_class) {
+					continue;
+				}
+				FOR(slist_tpl<ware_t>, ware, veh->get_cargo(ac)) {
+					bool merged = false;
+					FOR(slist_tpl<ware_t>, &recorded_ware, cargoes) {
+						// If meet the conditions for not being able to merge, go to the next step.
+
+						if( recorded_ware.get_index() != ware.get_index()) continue;
+						// Compare goods type and class and check if cargo can be merged
+						if (divide_by_wealth) {
+							if( ware.is_passenger()  &&  recorded_ware.is_commuting_trip!=ware.is_commuting_trip ) continue;
+							if(g_classes  &&  recorded_ware.get_class()!=ware.get_class() ) continue;
+						}
+
+						// Compare origin and destination and check if cargo can be merged
+						//      zwischenziel=via stop, ziel=destination stop, zielpos=destination building
+						if( info_depth_to    &&  recorded_ware.get_zwischenziel()!=ware.get_zwischenziel() ) continue;
+						if( info_depth_to>1  &&  recorded_ware.get_ziel()!=ware.get_ziel() ) continue;
+						if( info_depth_to==3 &&  recorded_ware.get_zielpos()!=ware.get_zielpos() ) continue;
+
+						if( info_depth_from    &&  recorded_ware.get_last_transfer()!=ware.get_last_transfer() ) continue;
+						if( info_depth_from==2 &&  recorded_ware.get_origin()!=ware.get_origin() ) continue;
+
+						// mergeable
+						recorded_ware.menge += ware.menge;
+						max_goods_count = max(max_goods_count, recorded_ware.menge);
+						merged = true;
+						break;
+					}
+
+					if(!merged){
+						max_goods_count = max(max_goods_count, ware.menge);
+						if (!divide_by_wealth  &&   g_classes) {
+							ware.set_class(0); // Unify unnecessary data for sorting
+						}
+						cargoes.append(ware);
+					}
+				}
+			}
+		}
+
+		// Do this only if the display is valid.
+		// Otherwise, the sorting parameter has been corrupted at merging
+		// and sorting will not be correct.
+		switch (sort_mode)
+		{
+			case by_amount:
+				cargoes.sort(compare_amount);
+				break;
+			case by_via:
+				if( info_depth_to ){
+					cargoes.sort(compare_via);
+				}
+				break;
+			case by_origin:
+				if( info_depth_from ) {
+					cargoes.sort(compare_last_transfer);
+				}
+				break;
+			case by_category:
+			default:
+				cargoes.sort(compare_index);
+				break;
+		}
+
+		if (max_goods_count) {
+			FOR(slist_tpl<ware_t>, &ware, cargoes) {
+				// col1, horizontal color bar
+				const scr_coord_val width = (HALT_WAITING_BAR_MAX_WIDTH*ware.menge+max_goods_count-1)/max_goods_count;
+				const PIXVAL barcolor = (divide_by_wealth && ware.is_commuting_trip) ? color_idx_to_rgb(COL_COMMUTER) : color_idx_to_rgb(goods_manager_t::get_info(ware.get_index())->get_color_index());
+				add_table(2,2)->set_spacing(scr_size(0,0));
+				{
+					new_component<gui_margin_t>(HALT_WAITING_BAR_MAX_WIDTH-width);
+					new_component<gui_capacity_bar_t>(scr_size(width, GOODS_COLOR_BOX_HEIGHT), barcolor)->set_show_frame(false);
+
+					// extra 2nd row for control alignment
+					new_component_span<gui_margin_t>(0, (info_depth_from&&info_depth_to) ? max(D_POS_BUTTON_HEIGHT, D_ENTRY_NO_HEIGHT):0, 2);
+				}
+				end_table();
+
+				// col2 cargo type, amount
+				add_table(3,2)->set_spacing(scr_size(D_V_SPACE,0));
+				{
+					// col2-1
+					gui_label_buf_t *lb = new_component<gui_label_buf_t>();
+					lb->buf().printf("%3u%s", ware.menge, translator::translate(ware.get_mass()));
+					lb->update();
+					lb->set_fixed_width(lb->get_min_size().w);
+
+					// col2-2
+					if (catg_index==goods_manager_t::INDEX_NONE) {
+						// show category  symbol
+						new_component<gui_image_t>(goods_manager_t::get_info(ware.get_index())->get_catg_symbol(), 0, 0, true);
+					}
+					else {
+						new_component<gui_empty_t>();
+					}
+
+					// col2-3
+					lb = new_component<gui_label_buf_t>();
+					// goods name
+					if (ware.is_passenger() && divide_by_wealth) {
+						if (ware.menge == 1) {
+							lb->buf().printf(" %s", ware.is_commuting_trip ? translator::translate("commuter") : translator::translate("visitor"));
+						}
+						else {
+							lb->buf().printf(" %s", ware.is_commuting_trip ? translator::translate("commuters") : translator::translate("visitors"));
+						}
+					}
+					else {
+						lb->buf().append( translator::translate(ware.get_name()) );
+					}
+					if( (goods_manager_t::get_info(ware.get_index())->get_number_of_classes()>1)  &&  divide_by_wealth ) {
+						lb->buf().printf(" (%s)", goods_manager_t::get_translated_wealth_name(ware.get_index(), ware.get_class()));
+					}
+					lb->update();
+
+					// extra 2nd row for control alignment
+					new_component_span<gui_margin_t>(0, (info_depth_from&&info_depth_to) ? max(D_POS_BUTTON_HEIGHT, D_ENTRY_NO_HEIGHT):0, 3);
+				}
+				end_table();
+
+				// col3
+				add_table(1,2)->set_spacing(scr_size(0,0));
+				{
+					// upper row: origin/from
+					add_table(4,1)->set_spacing(scr_size(D_H_SPACE,0));
+					{
+						if( info_depth_from  &&  ware.get_last_transfer().is_bound() ) {
+							new_component<gui_label_t>( (info_depth_from>1 && ware.get_origin().is_bound() && (ware.get_last_transfer()==ware.get_origin())) ?
+								(ware.is_passenger() ? "Origin:" : "Shipped from:") : (ware.is_passenger() ? "Boarding from:" : "Loaded at:")
+								);
+							bool is_interchange = (ware.get_last_transfer().get_rep()->registered_lines.get_count() + ware.get_last_transfer().get_rep()->registered_convoys.get_count()) > 1;
+							new_component<gui_schedule_entry_number_t>(cnv->get_schedule()->get_entry_index(ware.get_last_transfer(), cnv->get_owner(), !cnv->is_reversed()),
+								ware.get_last_transfer().get_rep()->get_owner()->get_player_color1(),
+								is_interchange ? gui_schedule_entry_number_t::number_style::interchange : gui_schedule_entry_number_t::number_style::halt,
+								scr_size(D_ENTRY_NO_WIDTH, max(D_POS_BUTTON_HEIGHT, D_ENTRY_NO_HEIGHT)),
+								ware.get_last_transfer().get_rep()->get_basis_pos3d()
+								);
+							gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT);
+							lb->buf().append(ware.get_last_transfer()->get_name());
+
+							if( info_depth_from>1  &&  ware.get_origin().is_bound()  &&  (ware.get_last_transfer()!=ware.get_origin()) ) {
+								add_table(3,1);
+								{
+									new_component<gui_label_t>(ware.is_passenger() ? "Origin:" : "Shipped from:");
+									is_interchange = (ware.get_origin().get_rep()->registered_lines.get_count() + ware.get_origin().get_rep()->registered_convoys.get_count()) > 1;
+									new_component<gui_schedule_entry_number_t>(-1, ware.get_origin().get_rep()->get_owner()->get_player_color1(),
+										is_interchange ? gui_schedule_entry_number_t::number_style::interchange : gui_schedule_entry_number_t::number_style::halt,
+										scr_size(LINESPACE + 4, LINESPACE),
+										ware.get_origin().get_rep()->get_basis_pos3d()
+										);
+									lb = new_component<gui_label_buf_t>(SYSCOL_TEXT);
+									lb->buf().append(ware.get_origin()->get_name());
+								}
+								end_table();
+							}
+						}
+					}
+					end_table();
+
+					// lower row: via/to
+					if( info_depth_to  &&  ware.get_zwischenziel().is_bound() ) {
+						add_table(5,1)->set_spacing(scr_size(D_H_SPACE,0));
+						{
+							if( info_depth_from ) new_component<gui_margin_t>(LINESPACE); // add left margin for lower row
+							bool display_goal_halt = (info_depth_to>1)  &&  ware.get_ziel().is_bound()  &&  (ware.get_zwischenziel()!=ware.get_ziel());
+							new_component<gui_label_t>(display_goal_halt ? "Via:" : "To:");
+							bool is_interchange = (ware.get_zwischenziel().get_rep()->registered_lines.get_count() + ware.get_zwischenziel().get_rep()->registered_convoys.get_count()) > 1;
+							new_component<gui_schedule_entry_number_t>(cnv->get_schedule()->get_entry_index(ware.get_zwischenziel(), cnv->get_owner(), cnv->is_reversed()),
+								ware.get_zwischenziel().get_rep()->get_owner()->get_player_color1(),
+								is_interchange ? gui_schedule_entry_number_t::number_style::interchange : gui_schedule_entry_number_t::number_style::halt,
+								scr_size(D_ENTRY_NO_WIDTH, max(D_POS_BUTTON_HEIGHT, D_ENTRY_NO_HEIGHT)),
+								ware.get_zwischenziel().get_rep()->get_basis_pos3d()
+								);
+							gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT);
+							lb->buf().append(ware.get_zwischenziel()->get_name());
+							if( display_goal_halt ) {
+								lb->buf().append(" > ");
+							}
+							lb->update();
+							add_table(4,1);
+							{
+								if( display_goal_halt ) {
+									new_component<gui_label_t>("To:");
+									is_interchange = (ware.get_ziel().get_rep()->registered_lines.get_count() + ware.get_ziel().get_rep()->registered_convoys.get_count()) > 1;
+									new_component<gui_schedule_entry_number_t>(-1, ware.get_ziel().get_rep()->get_owner()->get_player_color1(),
+										is_interchange ? gui_schedule_entry_number_t::number_style::interchange : gui_schedule_entry_number_t::number_style::halt,
+										scr_size(LINESPACE + 4, LINESPACE),
+										ware.get_ziel().get_rep()->get_basis_pos3d()
+										);
+									lb = new_component<gui_label_buf_t>(SYSCOL_TEXT);
+									lb->buf().append(ware.get_ziel()->get_name());
+									lb->update();
+								}
+								if( info_depth_to==3 ) {
+									// final destination building
+									add_table(3,1);
+									{
+										new_component<gui_label_t>(" ...");
+										if( skinverwaltung_t::on_foot && (ware.is_passenger() || ware.is_mail()) ) {
+											new_component<gui_image_t>(skinverwaltung_t::on_foot->get_image_id(0), 0, ALIGN_CENTER_V, true);
+										}
+										new_component<gui_destination_building_info_t>(ware.get_zielpos(), ware.is_freight());
+									}
+									end_table();
+								}
+							}
+							end_table();
+						}
+						end_table();
+					}
+				}
+				end_table();
+
+				// col4
+				new_component<gui_fill_t>();
+			}
+		}
+		else {
+			new_component<gui_margin_t>(LINEASCENT);
+			new_component<gui_label_t>("leer", SYSCOL_TEXT_WEAK);
+		}
+		set_size(get_min_size());
+	}
+}
+
+gui_convoy_cargo_info_t::gui_convoy_cargo_info_t(convoihandle_t cnv)
+{
+	this->cnv=cnv;
+	update();
+}
+
+void gui_convoy_cargo_info_t::set_mode(uint8 depth_from, uint8 depth_to, bool wealth_yesno, bool separated_fare, uint8 mode)
+{
+	info_depth_from = depth_from;
+	info_depth_to   = depth_to;
+	divide_by_wealth = wealth_yesno;
+	separate_by_fare = separated_fare;
+	sort_mode = mode;
+	update();
+}
+
+void gui_convoy_cargo_info_t::update()
+{
+	remove_all();
+	if( !cnv.is_bound() ) { return; }
+
+	old_vehicle_count = cnv->get_vehicle_count();
+	old_total_cargo   = cnv->get_total_cargo();
+
+	set_table_layout(1,0);
+	set_alignment(ALIGN_LEFT | ALIGN_TOP);
+
+	if( !info_depth_from  &&  !info_depth_to  ) {
+		// simple
+		new_component<gui_convoy_loading_info_t>(linehandle_t(), cnv, true);
+	}
+	else if (separate_by_fare) {
+
+		const minivec_tpl<uint8> &goods_catg_index = cnv->get_goods_catg_index();
+		for (uint8 catg_index = 0; catg_index < goods_manager_t::get_max_catg_index(); catg_index++) {
+			if (!goods_catg_index.is_contained(catg_index)) {
+				continue;
+			}
+			const uint8 g_classes = goods_manager_t::get_classes_catg_index(catg_index);
+			for (uint8 i = 0; i < g_classes; i++) {
+				if (cnv->get_unique_fare_capacity(catg_index,i)) {
+					add_table(2,1);
+					{
+						new_component<gui_image_t>(goods_manager_t::get_info_catg_index(catg_index)->get_catg_symbol(),0,0, true);
+						gui_label_buf_t *lb = new_component<gui_label_buf_t>(SYSCOL_TEXT);
+						if( g_classes > 1 ) {
+							lb->buf().append(goods_manager_t::get_translated_fare_class_name(catg_index,i));
+						}
+						else {
+							lb->buf().append(translator::translate(goods_manager_t::get_info_catg_index(catg_index)->get_catg_name()));
+						}
+
+						lb->buf().printf(": %i/%i ", cnv->get_total_cargo_by_fare_class(catg_index,i),cnv->get_unique_fare_capacity(catg_index,i));
+						if (cnv->get_total_cargo_by_fare_class(catg_index,i)) {
+							lb->buf().append(translator::translate("loaded"));
+						}
+						lb->update();
+
+						// UI TODO:
+						// add loading rate
+
+					}
+					end_table();
+
+					new_component<gui_cargo_info_t>(cnv)->init(info_depth_from, info_depth_to, divide_by_wealth, sort_mode, catg_index, i);
+					new_component<gui_border_t>();
+				}
+			}
+		}
+
+	}
+	else {
+		new_component<gui_cargo_info_t>(cnv)->init(info_depth_from, info_depth_to, divide_by_wealth, sort_mode);
+	}
+
+	set_size(get_min_size());
+}
+
+void gui_convoy_cargo_info_t::draw(scr_coord offset)
+{
+	if( cnv.is_bound() ) {
+		bool need_update = false;
+		if( cnv->get_vehicle_count() != old_vehicle_count ) {
+			need_update = true;
+		}
+		else if( cnv->get_total_cargo() != old_total_cargo ) {
+			need_update = true;
+		}
+
+		if (need_update) update();
+		gui_aligned_container_t::draw(offset);
 	}
 }
