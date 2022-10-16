@@ -80,25 +80,6 @@ void root_writer_t::write(const char* filename, int argc, char* argv[])
 				dbg->warning( "Write pak", "Cannot read %s", i);
 			}
 		}
-		find.search(arg, "csv");
-		FOR(searchfolder_t, const& i, find) {
-			CSV_file_t infile;
-
-			if (infile.load_file(i)) {
-				tabfileobj_t obj;
-
-				writer_init(i,arg);
-
-
-				infile.reset_current_obj();
-				while(infile.get_object(obj)) {
-					writer_write(separate,filename,outfp,node,obj);
-				}
-			}
-			else {
-				dbg->warning( "Write pak", "Cannot read %s", i);
-			}
-		}
 	}
 	if (!separate) {
 		node->write(outfp);
