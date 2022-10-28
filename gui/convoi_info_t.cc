@@ -119,7 +119,6 @@ convoi_info_t::convoi_info_t(convoihandle_t cnv) :
 	cont_times_history(linehandle_t(), cnv),
 	scroll_freight(&cargo_info, true, true),
 	cont_line_network(cnv),
-	scroll_freight(&container_freight, true, true),
 	scroll_times_history(&cont_times_history, true),
 	scroll_line_network(&cont_line_network, true, true),
 	lc_preview(0)
