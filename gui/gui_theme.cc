@@ -38,6 +38,7 @@ PIXVAL gui_theme_t::gui_color_edit_text_disabled;
 PIXVAL gui_theme_t::gui_color_edit_background_selected;
 PIXVAL gui_theme_t::gui_color_edit_beam;
 PIXVAL gui_theme_t::gui_color_chart_background;
+PIXVAL gui_theme_t::gui_color_chart_button_background;
 PIXVAL gui_theme_t::gui_color_chart_lines_zero;
 PIXVAL gui_theme_t::gui_color_chart_lines_odd;
 PIXVAL gui_theme_t::gui_color_chart_lines_even;
@@ -181,6 +182,7 @@ void gui_theme_t::init_gui_defaults()
 	gui_color_edit_beam                    = color_idx_to_rgb(COL_WHITE);
 
 	gui_color_chart_background             = color_idx_to_rgb(MN_GREY3);
+	gui_color_chart_button_background      = color_idx_to_rgb(COL_WHITE);
 	gui_color_chart_lines_zero             = color_idx_to_rgb(MN_GREY4);
 	gui_color_chart_lines_odd              = color_idx_to_rgb(COL_WHITE);
 	gui_color_chart_lines_even             = color_idx_to_rgb(MN_GREY0);
@@ -601,6 +603,7 @@ bool gui_theme_t::themes_init(const char *file_name, bool init_fonts, bool init_
 	gui_theme_t::gui_color_edit_background_selected     = (PIXVAL)contents.get_color("gui_color_edit_background_selected", SYSCOL_EDIT_BACKGROUND_SELECTED);
 	gui_theme_t::gui_color_edit_beam                    = (PIXVAL)contents.get_color("gui_color_edit_beam", SYSCOL_CURSOR_BEAM);
 	gui_theme_t::gui_color_chart_background             = (PIXVAL)contents.get_color("gui_color_chart_background", SYSCOL_CHART_BACKGROUND);
+	gui_theme_t::gui_color_chart_button_background      = (PIXVAL)contents.get_color("gui_color_chart_button_background", SYSCOL_CHART_BUTTON_BACKGROUND);
 	gui_theme_t::gui_color_chart_lines_zero             = (PIXVAL)contents.get_color("gui_color_chart_lines_zero", SYSCOL_CHART_LINES_ZERO);
 	gui_theme_t::gui_color_chart_lines_odd              = (PIXVAL)contents.get_color("gui_color_chart_lines_odd", SYSCOL_CHART_LINES_ODD);
 	gui_theme_t::gui_color_chart_lines_even             = (PIXVAL)contents.get_color("gui_color_chart_lines_even", SYSCOL_CHART_LINES_EVEN);
