@@ -473,6 +473,12 @@ void button_t::draw(scr_coord offset)
 					}
 					// move the text to leave evt. space for a colored box top left or bottom right of it
 					if( pressed && gui_theme_t::pressed_button_sinks ) area_text.y++;
+					if( pressed && (type&TYPE_MASK)==chart_marker ) {
+						// Setting text color for buttons may reduce readability => draw shadow
+						area_text.x++; area_text.y++;
+						display_proportional_ellipsis_rgb(area_text, translated_text, ALIGN_CENTER_H | ALIGN_CENTER_V | DT_CLIP, SYSCOL_TEXT_SHADOW, true);
+						area_text.x--; area_text.y--;
+					}
 					display_proportional_ellipsis_rgb( area_text, translated_text, ALIGN_CENTER_H | ALIGN_CENTER_V | DT_CLIP, text_color, true );
 				}
 				if(  img != IMG_EMPTY  ) {
