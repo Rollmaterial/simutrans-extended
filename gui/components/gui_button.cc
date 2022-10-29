@@ -410,12 +410,9 @@ void button_t::draw(scr_coord offset)
 						if (text && pressed) {
 							text_color = background_color;
 						}
-						display_img_stretch(gui_theme_t::button_tiles[0], area);
-						if (pressed && b_enabled) {
-							display_img_stretch_blend(gui_theme_t::button_color_tiles[b_enabled], area, SYSCOL_CHART_BUTTON_BACKGROUND | TRANSPARENT75_FLAG | OUTLINE_FLAG);
-						}
-						else if (!b_enabled) {
-							display_img_stretch_blend(gui_theme_t::button_color_tiles[b_enabled && pressed], area, background_color | TRANSPARENT25_FLAG | OUTLINE_FLAG);
+						display_img_stretch(gui_theme_t::button_tiles[get_state_offset()], area);
+						if (pressed) {
+							display_img_stretch_blend(gui_theme_t::button_color_tiles[b_enabled && pressed], area, SYSCOL_CHART_BUTTON_BACKGROUND | (b_enabled && pressed?TRANSPARENT75_FLAG: TRANSPARENT25_FLAG) | OUTLINE_FLAG);
 						}
 						break;
 					case roundbox_left:

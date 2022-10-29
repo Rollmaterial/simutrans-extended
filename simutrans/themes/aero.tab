@@ -155,7 +155,7 @@ gui_color_text_head_row             = #FFFFFF
 gui_color_text_left_col             = #000000
 
 # Chart button
-gui_color_chart_button_background = #99ddff
+gui_color_chart_button_background = #cceeff
 
 ##################################size stuff##################################
 

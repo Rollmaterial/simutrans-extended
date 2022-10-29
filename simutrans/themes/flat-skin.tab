@@ -113,7 +113,7 @@ gui_color_loadingbar_progress = #4d4d4d
 gui_color_loadingbar_inner = #cfcfcf
 
 # Chart button
-gui_color_chart_button_background = #a3a3a3
+gui_color_chart_button_background = #cfcfcf
 
 ##################################size stuff##################################
 
