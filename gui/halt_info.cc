@@ -880,7 +880,8 @@ void halt_info_t::init(halthandle_t halt)
 			index_of_haltinfo[cost], MAX_MONTHS, index_of_haltinfo[cost]==HALT_GOODS_HANDLING_VOLUME ? gui_chart_t::TONNEN : 0, false, true, precision, 0, marker_type);
 
 		button_t *b = container_chart.new_component<button_t>();
-		b->init(button_t::box_state_automatic | button_t::flexible, cost_type[cost]);
+		b->init(button_t::chart_marker_state_automatic | button_t::flexible, cost_type[cost]);
+		b->set_marker_style(marker_type | draw_horizontal_line);
 		b->background_color = color_idx_to_rgb(cost_type_color[cost]);
 		b->set_tooltip(cost_tooltip[cost]);
 		b->pressed = false;
