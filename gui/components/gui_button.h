@@ -9,6 +9,7 @@
 
 #include "gui_action_creator.h"
 #include "gui_component.h"
+#include "gui_chart.h"
 #include "../../simcolor.h"
 #include "../../dataobj/koord.h"
 #include "../../dataobj/koord3d.h"
@@ -53,6 +54,7 @@ public:
 		posbutton,
 		repeatarrowleft,
 		repeatarrowright,
+		chart_marker,
 		TYPE_MASK = (1 << 6) - 1,
 
 		state            = 1 << 6,
@@ -68,6 +70,7 @@ public:
 		arrowright_state = arrowright | state,
 		arrowup_state    = arrowup    | state,
 		arrowdown_state  = arrowdown  | state,
+		chart_marker_state = chart_marker | state,
 		automatic = 1<<7,
 		square_automatic    = square_state | automatic,
 		box_state_automatic = box_state    | automatic,
@@ -75,6 +78,7 @@ public:
 		sortarrow_automatic = sortarrow    | automatic,
 		posbutton_automatic = posbutton    | automatic,
 		depot_automatic     = depot        | automatic,
+		chart_marker_state_automatic = chart_marker_state | automatic,
 
 		flexible = 1 << 9
 	};
@@ -115,6 +119,8 @@ private:
 
 	bool img_on_right=false;
 
+	uint8 chart_marker_style= (uint8)chart_marker_t::square;
+
 	// any click will go to this world
 	static karte_ptr_t welt;
 
@@ -152,6 +158,8 @@ public:
 	 */
 	void set_targetpos( const koord k ); // assuming this is on map ground
 	void set_targetpos3d( const koord3d k ) { targetpos = k; }
+
+	void set_marker_style(uint8 style) { chart_marker_style = style; }
 
 	// relevant for imagebox, box and roundbox
 	void set_image(image_id id) { img = id; }

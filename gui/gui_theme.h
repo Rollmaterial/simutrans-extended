@@ -232,6 +232,7 @@ public:
 	static PIXVAL gui_color_edit_background_selected;     //@< Color to draw background of selected text in edit areas
 	static PIXVAL gui_color_edit_beam;                    //@< Color to draw the cursor beam
 	static PIXVAL gui_color_chart_background;             //@< Color to draw background of charts
+	static PIXVAL gui_color_chart_button_background;      //@< Color to draw background of chart marker buttons
 	static PIXVAL gui_color_chart_lines_zero;             //@< Color to draw in-chart horizontal zero line
 	static PIXVAL gui_color_chart_lines_odd;              //@< Color to draw in-chart vertical odd lines and text
 	static PIXVAL gui_color_chart_lines_even;             //@< Color to draw in-chart vertical even lines and text

@@ -157,6 +157,9 @@ gui_color_text_left_col              = #000000
 gui_color_text_head_selected         = #ffffff
 gui_color_text_table_cell_selected   = #ffffff
 
+# Chart button
+gui_color_chart_button_background = #cceeff
+
 ##################################size stuff##################################
 
 # force main menu icon size

@@ -167,6 +167,7 @@ typedef unsigned int FLAGGED_PIXVAL;
 #define SYSCOL_EDIT_BACKGROUND_SELECTED     gui_theme_t::gui_color_edit_background_selected
 #define SYSCOL_CURSOR_BEAM                  gui_theme_t::gui_color_edit_beam
 #define SYSCOL_CHART_BACKGROUND             gui_theme_t::gui_color_chart_background
+#define SYSCOL_CHART_BUTTON_BACKGROUND      gui_theme_t::gui_color_chart_button_background
 #define SYSCOL_CHART_LINES_ZERO             gui_theme_t::gui_color_chart_lines_zero
 #define SYSCOL_CHART_LINES_ODD              gui_theme_t::gui_color_chart_lines_odd
 #define SYSCOL_CHART_LINES_EVEN             gui_theme_t::gui_color_chart_lines_even

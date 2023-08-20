@@ -112,6 +112,9 @@ gui_color_button_text_selected = #FAFAFA
 gui_color_loadingbar_progress = #4d4d4d
 gui_color_loadingbar_inner = #cfcfcf
 
+# Chart button
+gui_color_chart_button_background = #cfcfcf
+
 ##################################size stuff##################################
 
 icon_width = 48
