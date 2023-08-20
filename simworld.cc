@@ -4047,18 +4047,6 @@ bool karte_t::rem_fab(fabrik_t *fab)
 	return true;
 }
 
-void karte_t::fab_init_contracts(){
-	for(fabrik_t* fab : fab_list){
-		fab->init_contracts();
-	}
-}
-
-void karte_t::fab_remove_contracts(){
-	for(fabrik_t* fab : fab_list){
-		fab->remove_contracts();
-	}
-}
-
 /*----------------------------------------------------------------------------------------------------------------------*/
 /* same procedure for tourist attractions */
 
@@ -4560,7 +4548,6 @@ void karte_t::new_month()
 	uint32 total_electric_demand = 1;
 	uint32 electric_productivity = 0;
 	closed_factories_this_month.clear();
-	should_close_factories_this_month.clear();
 	uint32 closed_factories_count = 0;
 	FOR(vector_tpl<fabrik_t*>, const fab, fab_list)
 	{
@@ -4595,16 +4582,6 @@ void karte_t::new_month()
 		}
 	}
 
-	if(should_close_factories_this_month.get_count()){
-		for(uint32 i = 0; i < 16 && i < should_close_factories_this_month.get_count(); i++){
-			fabrik_t* fab = pick_any_weighted(should_close_factories_this_month);
-			if(fab_list.is_contained(fab)){
-				gebaeude_t* gb = fab->get_building();
-				hausbauer_t::remove(get_public_player(), gb, false);
-			}
-		}
-	}
-
 	// Check to see whether more factories need to be added
 	// to replace ones that have closed.
 	// @author: jamespetts
@@ -4624,7 +4601,7 @@ void karte_t::new_month()
 	}
 	const uint32 target_industry_density = get_target_industry_density();
 	uint32 count = 0;
-	while(actual_industry_density < target_industry_density && count < 8)
+	while(actual_industry_density < target_industry_density && count < 4)
 	{
 		// Only add up to four chains per month, and randomise (with a minimum of 8% distribution_weight to ensure that any industry deficiency is, on average, remedied in about a year).
 		const uint32 percentage = max((((target_industry_density - actual_industry_density) * 100u) / target_industry_density), 8u);
@@ -11391,18 +11368,27 @@ void karte_t::update_weight_of_building_in_world_list(gebaeude_t *gb)
 		return;
 	}
 
-	if(passenger_origins.update(gb, gb->get_adjusted_population())){
+	if(passenger_origins.is_contained(gb))
+	{
+		passenger_origins.update_at(passenger_origins.index_of(gb), gb->get_adjusted_population());
 		passenger_step_interval = calc_adjusted_step_interval(passenger_origins.get_sum_weight(), get_settings().get_passenger_trips_per_month_hundredths());
 	}
 
 	for (uint8 i = 0; i < goods_manager_t::passengers->get_number_of_classes(); i++)
 	{
-		commuter_targets[i].update(gb, (gb->get_tile()->get_desc()->get_class_proportions_sum_jobs() > 0 ? (gb->get_adjusted_jobs() * gb->get_tile()->get_desc()->get_class_proportion_jobs(i)) / gb->get_tile()->get_desc()->get_class_proportions_sum_jobs() : gb->get_adjusted_jobs()));
+		if (commuter_targets[i].is_contained(gb))
+		{
+			commuter_targets[i].update_at(commuter_targets[i].index_of(gb), (gb->get_tile()->get_desc()->get_class_proportions_sum_jobs() > 0 ? (gb->get_adjusted_jobs() * gb->get_tile()->get_desc()->get_class_proportion_jobs(i)) / gb->get_tile()->get_desc()->get_class_proportions_sum_jobs() : gb->get_adjusted_jobs()));
+		}
 
-		visitor_targets[i].update(gb, (gb->get_tile()->get_desc()->get_class_proportions_sum() > 0 ? (gb->get_adjusted_visitor_demand() * gb->get_tile()->get_desc()->get_class_proportion(i)) / gb->get_tile()->get_desc()->get_class_proportions_sum() : gb->get_adjusted_visitor_demand()));
+		if (visitor_targets[i].is_contained(gb))
+		{
+			visitor_targets[i].update_at(visitor_targets[i].index_of(gb), (gb->get_tile()->get_desc()->get_class_proportions_sum() > 0 ? (gb->get_adjusted_visitor_demand() * gb->get_tile()->get_desc()->get_class_proportion(i)) / gb->get_tile()->get_desc()->get_class_proportions_sum() : gb->get_adjusted_visitor_demand()));
+		}
 	}
-
-	if(mail_origins_and_targets.update(gb, gb->get_adjusted_mail_demand())){
+	if(mail_origins_and_targets.is_contained(gb))
+	{
+		mail_origins_and_targets.update_at(mail_origins_and_targets.index_of(gb), gb->get_adjusted_mail_demand());
 		mail_step_interval = calc_adjusted_step_interval(mail_origins_and_targets.get_sum_weight(), get_settings().get_mail_packets_per_month_hundredths());
 	}
 }
