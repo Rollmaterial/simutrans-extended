@@ -140,7 +140,6 @@ void button_t::set_typ(enum type t)
 			break;
 		}
 
-
 		default:
 			break;
 	}
@@ -161,6 +160,7 @@ scr_size button_t::get_max_size() const
 	switch(type&TYPE_MASK) {
 		case square:
 		case box:
+		case chart_marker:
 		case roundbox:
 		case roundbox_left:
 		case roundbox_middle:
@@ -197,6 +197,7 @@ scr_size button_t::get_min_size() const
 			scr_coord_val w = translated_text ?  D_H_SPACE + proportional_string_width( translated_text ) : 0;
 			return scr_size(w + gui_theme_t::gui_checkbox_size.w, max(gui_theme_t::gui_checkbox_size.h,LINESPACE));
 		}
+		case chart_marker:
 		case box:
 		case roundbox:
 		case roundbox_left:
@@ -209,6 +210,9 @@ scr_size button_t::get_min_size() const
 				scr_coord_val x = 0, y = 0, img_w = 0, h = 0;
 				display_get_image_offset(img, &x, &y, &img_w, &h);
 				w += img_w+2;
+			}
+			if ((type&TYPE_MASK) == chart_marker) {
+				w += LINESPACE+6;
 			}
 			size.w = max(size.w, w);
 			return size;
@@ -385,17 +389,31 @@ void button_t::draw(scr_coord offset)
 	switch (type&TYPE_MASK) {
 
 		case box:      // Colored background box
+			if(  text && pressed  ) {
+				text_color = SYSCOL_COLORED_BUTTON_TEXT_SELECTED;
+			}
+			/* FALLTHROUGH */
+		case chart_marker:
 		case roundbox: // button with inside text
 		case roundbox_left:
 		case roundbox_middle:
 		case roundbox_right:
 		case imagebox:
-			{
+		{
 				switch (type&TYPE_MASK) {
 					case box:
 					case imagebox:
 						display_img_stretch(gui_theme_t::button_tiles[get_state_offset()], area);
 						display_img_stretch_blend(gui_theme_t::button_color_tiles[b_enabled && pressed], area, background_color | TRANSPARENT75_FLAG | OUTLINE_FLAG);
+						break;
+					case chart_marker:
+						if (text && pressed) {
+							text_color = background_color;
+						}
+						display_img_stretch(gui_theme_t::button_tiles[get_state_offset()], area);
+						if (pressed) {
+							display_img_stretch_blend(gui_theme_t::button_color_tiles[b_enabled && pressed], area, SYSCOL_CHART_BUTTON_BACKGROUND | (b_enabled && pressed?TRANSPARENT75_FLAG: TRANSPARENT25_FLAG) | OUTLINE_FLAG);
+						}
 						break;
 					case roundbox_left:
 						display_img_stretch(gui_theme_t::round_button_left_tiles[get_state_offset()], area);
@@ -419,6 +437,26 @@ void button_t::draw(scr_coord offset)
 				scr_rect area_text = area - gui_theme_t::gui_button_text_offset_right;
 				area_img.set_pos( area.get_pos() );
 				area_text.set_pos( gui_theme_t::gui_button_text_offset + area.get_pos() );
+				if ((type&TYPE_MASK) == chart_marker) {
+					// draw chart marker
+					const scr_coord_val offset_x = (text ? 0 : area.w / 2 - LINESPACE)+3;
+					if (pressed) {
+						display_chart_marker_rgb(area.x+offset_x+LINESPACE/2-1, area.y+area.h/2-3, SYSCOL_CHART_BACKGROUND, (chart_marker_t)(chart_marker_style&MARKER_TYPE_MASK), false);
+						display_chart_marker_rgb(area.x+offset_x+LINESPACE/2-1, area.y+area.h/2-1, SYSCOL_CHART_BACKGROUND, (chart_marker_t)(chart_marker_style&MARKER_TYPE_MASK), false);
+						display_chart_marker_rgb(area.x+offset_x+LINESPACE/2+1, area.y+area.h/2-3, SYSCOL_CHART_BACKGROUND, (chart_marker_t)(chart_marker_style&MARKER_TYPE_MASK), false);
+						display_chart_marker_rgb(area.x+offset_x+LINESPACE/2+1, area.y+area.h/2-1, SYSCOL_CHART_BACKGROUND, (chart_marker_t)(chart_marker_style&MARKER_TYPE_MASK), false);
+					}
+					if ((chart_marker_style&chart_marker_t::draw_horizontal_line)!=0) {
+						// draw line
+						if (pressed) {
+							display_fillbox_wh_clip_rgb(area.x+ offset_x, area.y+area.h/2-1,   LINESPACE+4, 3, SYSCOL_CHART_BACKGROUND, false);
+						}
+						display_fillbox_wh_clip_rgb(area.x+ offset_x+1, area.y+area.h/2, LINESPACE+2, 1, pressed ? background_color:SYSCOL_CHART_LINES_EVEN, false);
+					}
+					display_chart_marker_rgb(area.x+offset_x+LINESPACE/2, area.y+area.h/2-2, pressed ? background_color:SYSCOL_CHART_LINES_EVEN, (chart_marker_t)(chart_marker_style&MARKER_TYPE_MASK), false);
+
+					area_text.x += LINESPACE-3;
+				}
 				if(  text  ) {
 					if( img != IMG_EMPTY ) {
 						area_text.w -= (w+D_H_SPACE);
@@ -434,6 +472,12 @@ void button_t::draw(scr_coord offset)
 					}
 					// move the text to leave evt. space for a colored box top left or bottom right of it
 					if( pressed && gui_theme_t::pressed_button_sinks ) area_text.y++;
+					if( pressed && (type&TYPE_MASK)==chart_marker ) {
+						// Setting text color for buttons may reduce readability => draw shadow
+						area_text.x++; area_text.y++;
+						display_proportional_ellipsis_rgb(area_text, translated_text, ALIGN_CENTER_H | ALIGN_CENTER_V | DT_CLIP, SYSCOL_TEXT_SHADOW, true);
+						area_text.x--; area_text.y--;
+					}
 					display_proportional_ellipsis_rgb( area_text, translated_text, ALIGN_CENTER_H | ALIGN_CENTER_V | DT_CLIP, text_color, true );
 				}
 				if(  img != IMG_EMPTY  ) {
@@ -567,6 +611,7 @@ void button_t::update_focusability()
 		case box:      // Old, 4-line box
 		case roundbox: // New box with round corners
 		case square:   // Little square in front of text (checkbox)
+		case chart_marker:
 			set_focusable(true);
 			break;
 

@@ -17,15 +17,15 @@
 Obj=menu
 name=Button
 # unpressed
-Image[0]=> button.0.0
-Image[1]=> button.0.2
-Image[2]=> button.0.1
-Image[3]=> button.0.3
-Image[4]=> button.0.5
-Image[5]=> button.0.4
-Image[6]=> button.0.6
-Image[7]=> button.0.8
-Image[8]=> button.0.7
+Image[0]=> roundbutton.0.0
+Image[1]=> roundbutton.0.2
+Image[2]=> roundbutton.0.1
+Image[3]=> roundbutton.0.3
+Image[4]=> roundbutton.0.5
+Image[5]=> roundbutton.0.4
+Image[6]=> roundbutton.0.6
+Image[7]=> roundbutton.0.8
+Image[8]=> roundbutton.0.7
 # pressed
 Image[9]=> button.1.0
 Image[10]=> button.1.2

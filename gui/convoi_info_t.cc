@@ -86,6 +86,13 @@ static const uint8 cost_type_money[BUTTON_COUNT] =
 	gui_chart_t::MONEY
 };
 
+static const chart_marker_t marker_type[BUTTON_COUNT] =
+{
+	chart_marker_t::cross, chart_marker_t::cross, chart_marker_t::cross, chart_marker_t::cross,
+	chart_marker_t::cross, chart_marker_t::diamond, chart_marker_t::round_box, chart_marker_t::square,
+	chart_marker_t::square, chart_marker_t::square, chart_marker_t::square, chart_marker_t::square
+};
+
 static uint8 statistic[convoi_t::MAX_CONVOI_COST] = {
 	convoi_t::CONVOI_CAPACITY, convoi_t::CONVOI_PAX_DISTANCE, convoi_t::CONVOI_MAIL_DISTANCE, convoi_t::CONVOI_PAYLOAD_DISTANCE,
 	convoi_t::CONVOI_DISTANCE, convoi_t::CONVOI_AVERAGE_SPEED, convoi_t::CONVOI_COMFORT, convoi_t::CONVOI_REVENUE,
@@ -296,10 +303,11 @@ void convoi_info_t::init(convoihandle_t cnv)
 	for (int cost = 0; cost<convoi_t::MAX_CONVOI_COST; cost++) {
 		const uint8 precision = cost_type_money[cost] == gui_chart_t::MONEY ? 2 : (cost_type_money[cost]==gui_chart_t::PAX_KM || cost_type_money[cost]==gui_chart_t::KG_KM || cost_type_money[cost]==gui_chart_t::TON_KM) ? 1 : 0;
 		uint16 curve = chart.add_curve( color_idx_to_rgb(cost_type_color[cost]), cnv->get_finance_history(), convoi_t::MAX_CONVOI_COST,
-			statistic[cost], MAX_MONTHS, cost_type_money[cost], false, true, precision);
+			statistic[cost], MAX_MONTHS, cost_type_money[cost], false, true, precision, 0, marker_type[cost]);
 
 		button_t *b = container_stats.new_component<button_t>();
-		b->init(button_t::box_state_automatic  | button_t::flexible, cost_type[cost]);
+		b->init(button_t::chart_marker_state_automatic | button_t::flexible, cost_type[cost]);
+		b->set_marker_style(marker_type[cost] | draw_horizontal_line);
 		b->background_color = color_idx_to_rgb(cost_type_color[cost]);
 		b->pressed = false;
 
